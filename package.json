@@ -1,0 +1,22 @@
+{
+  "name": "certatio-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MilesRayne/certatio-server.git"
+  },
+  "author": "Milos Rajkovic <milosrajkovic98@yahoo.com>, Sinisa Stanivuk <sinisa.stanivuk@gmail.com>, Daniel Fazlijevic <danielfazlijevic98@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/MilesRayne/certatio-server/issues"
+  },
+  "homepage": "https://github.com/MilesRayne/certatio-server#readme",
+  "dependencies": {
+    "socket.io": "^2.3.0"
+  }
+}
