@@ -2,15 +2,30 @@ const io = require("socket.io");
 const server = io.listen(3000);
 
 server.on("connection", function (socket) {
-  console.log("user connected");
+
+  //logovanje konektovanja novog korisnika na server igre
+  console.log("user", socket.id, "connected to the game server");
   socket.emit("welcome", "welcome man");
 
-  socket.on("join room", (data) => {
-    console.log("joined room", data);
+  //kreiranje nove sobe
+  socket.on("room:create", () => {
+
+    const roomID = socket.id.slice(0, 8);
+    console.log("creating room", roomID, "for host", socket.id);
+
+    socket.join(roomID);
+    socket.emit("room:created", roomID);
   });
 
-  socket.on("room:create", (data) => {
-    console.log("creating room", data);
-    socket.join("MilesGayne");
-  });
+
+  //konektovanje u postojecu sobu
+  socket.on("room:join", (roomID) => {
+
+    //bilo bi korisno ubaciti da se korisnik diskonektuje iz svih ostalih soba pri ulasku u novu
+    socket.join(roomID);
+
+
+    //socket (korisnik koji ulazi) emituje drugima da je usao u sobu
+    socket.to(roomID).emit("room:userJoined", socket.id);
+  })
 });
