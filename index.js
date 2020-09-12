@@ -1,5 +1,8 @@
 const io = require("socket.io");
 const server = io.listen(3000);
+const {
+  generateWords
+} = require("./utils");
 
 const activeRooms = [];
 
@@ -25,6 +28,10 @@ server.on("connection", function (socket) {
     socket.emit("usernameConfirmed", socket.username);
   });
 
+  socket.on("requestWords", (wordCount) => {
+    socket.emit("returnWords", generateWords(wordCount));
+  });
+
   //konektovanje u sobu
   socket.on("room:join", (roomID) => {
     //bilo bi korisno ubaciti da se korisnik diskonektuje iz svih ostalih soba pri ulasku u novu
@@ -34,16 +41,23 @@ server.on("connection", function (socket) {
 
     //posalji nazad korisniku da se joinovao
     socket.emit("room:joined", roomID);
+    socket.emit("createLanes");
+
+    console.log("Player ", socket.username, "has joined the room", roomID);
 
     //socket (korisnik koji ulazi) emituje drugima da je usao u sobu
     socket
       .to(roomID)
-      .emit("room:userJoined", { id: socket.id, username: socket.username });
+      .emit("room:userJoined", {
+        id: socket.id,
+        username: socket.username
+      });
 
     if (!activeRooms.includes(roomID)) {
       activeRooms.push(roomID);
 
       //soba nije postojala, ovde treba pokrenuti igru?
+
     } else {
       //soba je postojala, posalji klijentu status igre?
     }
