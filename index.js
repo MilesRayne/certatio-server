@@ -5,22 +5,21 @@ server.on("connection", function (socket) {
   //pracenje sobe u kojoj je igrac, mozda postoji bolji nacin sa socket.rooms ?
   let currentRoom = null;
   let players = null;
+  let username = null;
 
   //logovanje konektovanja novog korisnika na server igre
   console.log("user", socket.id, "connected to the game server");
   socket.emit("welcome", "welcome man");
 
-  //kreiranje nove sobe
-  socket.on("room:create", () => {
-    const roomID = socket.id.slice(0, 8);
-    console.log("creating room", roomID, "for host", socket.id);
+  //prihvatanje username-a korisnika
+  socket.on("createUsername", (input) => {
+    username = input;
+    console.log("Player with ID:", socket.id, "has chosen the username:", username);
 
-    socket.join(roomID);
-    currentRoom = roomID;
-    socket.emit("room:created", roomID);
-  });
+    socket.emit("usernameConfirmed");
+  })
 
-  //konektovanje u postojecu sobu
+  //konektovanje u sobu
   socket.on("room:join", (roomID) => {
     //bilo bi korisno ubaciti da se korisnik diskonektuje iz svih ostalih soba pri ulasku u novu
 
