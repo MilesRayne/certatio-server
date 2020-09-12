@@ -1,10 +1,14 @@
 const io = require("socket.io");
 const server = io.listen(3000);
 const {
-  generateWords
+  generateWords,
+  setGameState,
+  movePlayer,
+  removePlayer
 } = require("./utils");
 
 const activeRooms = [];
+const gameStates = {};
 
 server.on("connection", function (socket) {
   //pracenje sobe u kojoj je igrac, mozda postoji bolji nacin sa socket.rooms ?
@@ -41,7 +45,7 @@ server.on("connection", function (socket) {
 
     //posalji nazad korisniku da se joinovao
     socket.emit("room:joined", roomID);
-    socket.emit("createLanes");
+
 
     console.log("Player ", socket.username, "has joined the room", roomID);
 
@@ -55,11 +59,13 @@ server.on("connection", function (socket) {
 
     if (!activeRooms.includes(roomID)) {
       activeRooms.push(roomID);
-
-      //soba nije postojala, ovde treba pokrenuti igru?
+      gameState = setGameState();
+      socket.emit("createLanes", gameState);
+      gameStates[roomID] = gameState;
 
     } else {
-      //soba je postojala, posalji klijentu status igre?
+      gameState = gameStates[roomID];
+      socket.emit("createLanes", gameState);
     }
   });
 
@@ -77,11 +83,18 @@ server.on("connection", function (socket) {
   });
 
   socket.on("code:typed", (data) => {
-    console.log("primio zahtev od", socket.username,", ukucan kod: ", data);
+    console.log("primio zahtev od", socket.username, ", ukucan kod: ", data);
+
+    gameStates[currentRoom] = movePlayer(socket.username, data, gameStates[currentRoom]);
+    server.to(currentRoom).emit("refreshGameState", gameStates[currentRoom]);
   });
 
   //Obavestiti druge igrace da je neko napustio igru
   socket.on("disconnect", () => {
-    socket.to(currentRoom).emit("room:userLeft", socket.id);
+    if (currentRoom !== null) {
+      socket.to(currentRoom).emit("room:userLeft", socket.id);
+      gameStates[currentRoom] = removePlayer(socket.username, gameStates[currentRoom]);
+      socket.to(currentRoom).emit("refreshGameState", gameStates[currentRoom]);
+    }
   });
 });

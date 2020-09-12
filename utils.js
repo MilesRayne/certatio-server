@@ -21,6 +21,68 @@ function isContained(chosenWords, word) {
     return false;
 }
 
+function setGameState() {
+
+    const gameState = {
+        lanes: [{
+                code: '',
+                active: true,
+                players: []
+            },
+            {
+                code: '',
+                active: true,
+                players: []
+            },
+            {
+                code: '',
+                active: false,
+                players: []
+            },
+            {
+                code: '',
+                active: false,
+                players: []
+            }, {
+                code: '',
+                active: true,
+                players: []
+            }
+        ]
+    };
+
+    generatedWords = generateWords(5);
+    for (let i = 0; i < 5; i++) {
+        gameState.lanes[i].code = generatedWords[i];
+    }
+
+    return gameState;
+}
+
+function movePlayer(username, typedCode, gameState) {
+    for (let lane of gameState.lanes) {
+        if (lane.code.toUpperCase() === typedCode.toUpperCase()) {
+            lane.players.push(username);
+        } else {
+            lane.players = lane.players.filter(player => player !== username);
+        }
+    }
+
+    return gameState;
+}
+
+function removePlayer(username, gameState) {
+
+    for (let lane of gameState.lanes) {
+        lane.players = lane.players.filter(player => player !== username);
+    }
+
+    return gameState;
+}
+
 module.exports = {
-    generateWords
+    generateWords,
+    setGameState,
+    movePlayer,
+    removePlayer
 }
