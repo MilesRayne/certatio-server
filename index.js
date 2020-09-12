@@ -76,6 +76,10 @@ server.on("connection", function (socket) {
     socket.emit("receive:playerlist", currentPlayers);
   });
 
+  socket.on("code:typed", (data) => {
+    console.log("primio zahtev od", socket.username,", ukucan kod: ", data);
+  });
+
   //Obavestiti druge igrace da je neko napustio igru
   socket.on("disconnect", () => {
     socket.to(currentRoom).emit("room:userLeft", socket.id);
