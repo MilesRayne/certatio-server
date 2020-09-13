@@ -12,7 +12,7 @@ const activeRooms = [];
 const gameStates = {};
 
 server.on("connection", function (socket) {
-  //pracenje sobe u kojoj je igrac, mozda postoji bolji nacin sa socket.rooms ?
+
   let currentRoom = null;
   let intervalVariable = null;
   socket.username = null;
@@ -40,8 +40,8 @@ server.on("connection", function (socket) {
 
   //konektovanje u sobu
   socket.on("room:join", (roomID) => {
-    //bilo bi korisno ubaciti da se korisnik diskonektuje iz svih ostalih soba pri ulasku u novu
 
+    //bilo bi korisno ubaciti da se korisnik diskonektuje iz svih ostalih soba pri ulasku u novu
     socket.join(roomID);
     currentRoom = roomID;
 
@@ -61,13 +61,13 @@ server.on("connection", function (socket) {
 
     if (!activeRooms.includes(roomID)) {
       activeRooms.push(roomID);
-      gameState = setGameState();
+      gameState = setGameState(5);
       socket.emit("createLanes", gameState);
       gameStates[roomID] = gameState;
 
       //isprobavanje timera
       intervalVariable = setInterval(() => {
-        gameStates[roomID] = pushNewRoundGameState(gameStates[roomID], 5);
+        gameStates[roomID] = pushNewRoundGameState(gameStates[roomID], gameStates[roomID].lanes.length);
         server.to(currentRoom).emit("refreshGameState", gameStates[currentRoom]);
       }, 5000);
 

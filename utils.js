@@ -21,38 +21,25 @@ function isContained(chosenWords, word) {
     return false;
 }
 
-function setGameState() {
+function setGameState(numOfLanes = 5) {
 
     let gameState = {
-        lanes: [{
-                code: '',
-                active: true,
-                players: []
-            },
-            {
-                code: '',
-                active: true,
-                players: []
-            },
-            {
-                code: '',
-                active: false,
-                players: []
-            },
-            {
-                code: '',
-                active: false,
-                players: []
-            }, {
-                code: '',
-                active: true,
-                players: []
-            }
-        ],
+        lanes: [],
         numOfPlayers: {}
     };
+
+    for (let i = 0; i < numOfLanes; i++) {
+        gameState.lanes.push({
+            code: '',
+            active: true,
+            players: []
+        })
+    }
+
     gameState.numOfPlayers = 1;
-    gameState = pushWordsToGameState(gameState, 5);
+
+    console.log("pocetni game state je", gameState);
+    gameState = pushWordsToGameState(gameState, gameState.lanes.length);
 
     return gameState;
 }
