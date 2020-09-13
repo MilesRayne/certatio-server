@@ -24,7 +24,8 @@ function isContained(chosenWords, word) {
 function addPlayerToGameState(ID, username, gameState) {
     gameState.playerlist.push({
         username: username,
-        ID: ID
+        ID: ID,
+        lives: 3
     });
 
     gameState.numOfPlayers++;
@@ -64,10 +65,45 @@ function pushWordsToGameState(gameState, numOfLanes = 5) {
     return gameState;
 }
 
-function pushNewRoundGameState(gameState, numOfLanes = 5) {
+function pushNewRoundGameState(gameState) {
+
+    gameState = pushPlayerDataToGameState(gameState);
+
+    numOfLanes = gameState.lanes.length;
     gameState = pushWordsToGameState(gameState, numOfLanes);
     gameState = pushInactiveLanesToGameState(gameState, numOfLanes);
     gameState.roundTime = pushNewRoundTime(gameState.roundTime);
+
+
+    return gameState;
+}
+
+function pushPlayerDataToGameState(gameState) {
+
+    gameState = reducePlayerLives(gameState);
+
+    return gameState;
+}
+
+function reducePlayerLives(gameState) {
+
+    for (let lane of gameState.lanes) {
+        if (lane.active == false) {
+
+            for (let i = 0; i < lane.players.length; i++) {
+
+                let playerID = lane.players[i].ID;
+
+                for (let player of gameState.playerlist) {
+                    if (player.ID == playerID) {
+                        player.lives--;
+                        break;
+                    }
+                }
+
+            }
+        }
+    }
 
     return gameState;
 }

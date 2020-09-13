@@ -68,7 +68,7 @@ server.on("connection", function (socket) {
       function timeoutLoop() {
         let roundTime = gameState.roundTime;
         intervalVariable = setTimeout(() => {
-          gameStates[roomID] = pushNewRoundGameState(gameStates[roomID], gameStates[roomID].lanes.length);
+          gameStates[roomID] = pushNewRoundGameState(gameStates[roomID]);
           server.to(currentRoom).emit("refreshGameState", gameStates[currentRoom]);
           timeoutLoop();
         }, roundTime);
@@ -76,9 +76,7 @@ server.on("connection", function (socket) {
 
       timeoutLoop();
 
-    } else {
-
-    }
+    } else {}
     gameState = addPlayerToGameState(socket.id, socket.username, gameState);
     gameStates[roomID] = gameState;
     socket.emit("createLanes", gameState);
