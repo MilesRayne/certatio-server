@@ -5,7 +5,7 @@ const {
   setGameState,
   movePlayer,
   removePlayer,
-  pushWordsToLanes
+  pushNewRoundGameState
 } = require("./utils");
 
 const activeRooms = [];
@@ -67,7 +67,7 @@ server.on("connection", function (socket) {
 
       //isprobavanje timera
       intervalVariable = setInterval(() => {
-        gameStates[roomID] = pushWordsToLanes(gameStates[roomID], 5);
+        gameStates[roomID] = pushNewRoundGameState(gameStates[roomID], 5);
         server.to(currentRoom).emit("refreshGameState", gameStates[currentRoom]);
       }, 5000);
 

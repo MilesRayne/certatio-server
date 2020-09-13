@@ -52,15 +52,54 @@ function setGameState() {
         numOfPlayers: {}
     };
     gameState.numOfPlayers = 1;
-    gameState = pushWordsToLanes(gameState, 5);
+    gameState = pushWordsToGameState(gameState, 5);
 
     return gameState;
 }
 
-function pushWordsToLanes(gameState, numOfLanes = 5) {
+function pushWordsToGameState(gameState, numOfLanes = 5) {
     let generatedWords = generateWords(numOfLanes);
     for (let i = 0; i < numOfLanes; i++) {
         gameState.lanes[i].code = generatedWords[i];
+    }
+
+    return gameState;
+}
+
+function pushNewRoundGameState(gameState, numOfLanes = 5) {
+    gameState = pushWordsToGameState(gameState, numOfLanes);
+    gameState = pushInactiveLanesToGameState(gameState, numOfLanes);
+
+    return gameState;
+}
+
+function pushInactiveLanesToGameState(gameState, numOfLanes = 5) {
+
+    let numOfInactive = Math.floor(Math.random() * (numOfLanes - 1) + 1);
+    console.log("number of inactive lanes will be", numOfInactive);
+    gameState = refreshLaneActivity(gameState);
+
+    let numOfSetLanes = 0;
+
+    while (numOfSetLanes < numOfInactive) {
+        for (let i = 0; i < numOfLanes; i++) {
+            let chance = Math.random();
+            if (chance >= (1 / numOfLanes) && gameState.lanes[i].active != false && numOfSetLanes < numOfInactive) {
+                gameState.lanes[i].active = false;
+                numOfSetLanes++;
+                continue;
+            }
+        }
+    }
+
+    console.log("we have set", numOfSetLanes, "inactive lanes.");
+
+    return gameState;
+}
+
+function refreshLaneActivity(gameState) {
+    for (let lane of gameState.lanes) {
+        lane.active = true;
     }
 
     return gameState;
@@ -93,5 +132,5 @@ module.exports = {
     setGameState,
     movePlayer,
     removePlayer,
-    pushWordsToLanes
+    pushNewRoundGameState
 }
