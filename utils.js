@@ -21,11 +21,23 @@ function isContained(chosenWords, word) {
     return false;
 }
 
+function addPlayerToGameState(ID, username, gameState) {
+    gameState.playerlist.push({
+        username: username,
+        ID: ID
+    });
+
+    gameState.numOfPlayers++;
+
+    return gameState;
+}
+
 function setGameState(numOfLanes = 5) {
 
     let gameState = {
         lanes: [],
-        numOfPlayers: 1,
+        numOfPlayers: 0,
+        playerlist: [],
         roundTime: 10000
     };
 
@@ -128,6 +140,14 @@ function removePlayer(username, ID, gameState) {
         lane.players = lane.players.filter(player => player.ID !== ID);
     }
     gameState.numOfPlayers -= 1;
+
+    let player = {
+        username: username,
+        ID: ID
+    };
+
+    let indexOfPlayer = gameState.playerlist.indexOf(player);
+    gameState.playerlist.splice(indexOfPlayer, 1);
     return gameState;
 }
 
@@ -136,5 +156,6 @@ module.exports = {
     setGameState,
     movePlayer,
     removePlayer,
-    pushNewRoundGameState
+    pushNewRoundGameState,
+    addPlayerToGameState
 }
