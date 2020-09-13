@@ -108,8 +108,14 @@ server.on("connection", function (socket) {
       socket.to(currentRoom).emit("refreshGameState", gameStates[currentRoom]);
 
       console.log("Trenutan broj igraca u sobi", currentRoom, "je", gameStates[currentRoom].numOfPlayers);
+
+      //Remove empty rooms
       if (gameStates[currentRoom].numOfPlayers < 1) {
         clearInterval(intervalVariable);
+
+        let roomIndex = activeRooms.indexOf(currentRoom);
+        activeRooms.splice(roomIndex, 1);
+        console.log("Active rooms are now:", activeRooms);
       }
     }
   });

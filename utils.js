@@ -6,7 +6,7 @@ function generateWords(wordCount = 5) {
         let word = words[Math.floor(Math.random() * words.length)];
         if (!chosenWords.includes(word) && !isContained(chosenWords, word)) chosenWords.push(word);
     } while (chosenWords.length < wordCount);
-    console.log(chosenWords);
+    console.log("New generated words are", chosenWords);
     return chosenWords;
 }
 
@@ -79,20 +79,42 @@ function pushInactiveLanesToGameState(gameState, numOfLanes = 5) {
     console.log("number of inactive lanes will be", numOfInactive);
     gameState = refreshLaneActivity(gameState);
 
-    let numOfSetLanes = 0;
+    //Stara petlja, izbrisati?
+    // let numOfSetLanes = 0;
 
-    while (numOfSetLanes < numOfInactive) {
-        for (let i = 0; i < numOfLanes; i++) {
-            let chance = Math.random();
-            if (chance >= (1 / numOfLanes) && gameState.lanes[i].active != false && numOfSetLanes < numOfInactive) {
-                gameState.lanes[i].active = false;
-                numOfSetLanes++;
-                continue;
+    // while (numOfSetLanes < numOfInactive) {
+    //     for (let i = 0; i < numOfLanes; i++) {
+    //         let chance = Math.random();
+    //         if (chance >= (1 / numOfLanes) && gameState.lanes[i].active != false && numOfSetLanes < numOfInactive) {
+    //             gameState.lanes[i].active = false;
+    //             numOfSetLanes++;
+    //             continue;
+    //         }
+    //     }
+    // }
+
+    // console.log("we have set", numOfSetLanes, "inactive lanes.");
+
+    //NOVA PETLJA
+    let chosenLanes = [];
+
+    for (let i = 0; i < numOfInactive; i++) {
+        let pushed = false;
+
+        while (!pushed) {
+
+            let randomLaneIndex = Math.floor(Math.random() * numOfLanes);
+            if (!chosenLanes.includes(randomLaneIndex)) {
+                chosenLanes.push(randomLaneIndex);
+                pushed = true;
             }
         }
     }
+    console.log("Chosen lane indexes are", chosenLanes);
 
-    console.log("we have set", numOfSetLanes, "inactive lanes.");
+    for (let i = 0; i < numOfInactive; i++) {
+        gameState.lanes[chosenLanes[i]].active = false;
+    }
 
     return gameState;
 }
