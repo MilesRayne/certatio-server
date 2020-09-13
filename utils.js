@@ -23,7 +23,7 @@ function isContained(chosenWords, word) {
 
 function setGameState() {
 
-    const gameState = {
+    let gameState = {
         lanes: [{
                 code: '',
                 active: true,
@@ -48,11 +48,18 @@ function setGameState() {
                 active: true,
                 players: []
             }
-        ]
+        ],
+        numOfPlayers: {}
     };
+    gameState.numOfPlayers = 1;
+    gameState = pushWordsToLanes(gameState, 5);
 
-    generatedWords = generateWords(5);
-    for (let i = 0; i < 5; i++) {
+    return gameState;
+}
+
+function pushWordsToLanes(gameState, numOfLanes = 5) {
+    let generatedWords = generateWords(numOfLanes);
+    for (let i = 0; i < numOfLanes; i++) {
         gameState.lanes[i].code = generatedWords[i];
     }
 
@@ -62,6 +69,7 @@ function setGameState() {
 function movePlayer(username, typedCode, gameState) {
     for (let lane of gameState.lanes) {
         if (lane.code.toUpperCase() === typedCode.toUpperCase()) {
+            lane.players = lane.players.filter(player => player !== username);
             lane.players.push(username);
         } else {
             lane.players = lane.players.filter(player => player !== username);
@@ -76,7 +84,7 @@ function removePlayer(username, gameState) {
     for (let lane of gameState.lanes) {
         lane.players = lane.players.filter(player => player !== username);
     }
-
+    gameState.numOfPlayers -= 1;
     return gameState;
 }
 
@@ -84,5 +92,6 @@ module.exports = {
     generateWords,
     setGameState,
     movePlayer,
-    removePlayer
+    removePlayer,
+    pushWordsToLanes
 }

@@ -4,7 +4,8 @@ const {
   generateWords,
   setGameState,
   movePlayer,
-  removePlayer
+  removePlayer,
+  pushWordsToLanes
 } = require("./utils");
 
 const activeRooms = [];
@@ -13,6 +14,7 @@ const gameStates = {};
 server.on("connection", function (socket) {
   //pracenje sobe u kojoj je igrac, mozda postoji bolji nacin sa socket.rooms ?
   let currentRoom = null;
+  let intervalVariable = null;
   socket.username = null;
 
   //logovanje konektovanja novog korisnika na server igre
@@ -63,10 +65,19 @@ server.on("connection", function (socket) {
       socket.emit("createLanes", gameState);
       gameStates[roomID] = gameState;
 
+      //isprobavanje timera
+      intervalVariable = setInterval(() => {
+        gameStates[roomID] = pushWordsToLanes(gameStates[roomID], 5);
+        server.to(currentRoom).emit("refreshGameState", gameStates[currentRoom]);
+      }, 5000);
+
     } else {
+      gameStates[roomID].numOfPlayers += 1;
       gameState = gameStates[roomID];
       socket.emit("createLanes", gameState);
     }
+
+    console.log("Trenutan broj igraca u sobi", roomID, "je", gameStates[roomID].numOfPlayers);
   });
 
   //Dobijanje liste igraca u nekoj sobi
@@ -95,6 +106,11 @@ server.on("connection", function (socket) {
       socket.to(currentRoom).emit("room:userLeft", socket.id);
       gameStates[currentRoom] = removePlayer(socket.username, gameStates[currentRoom]);
       socket.to(currentRoom).emit("refreshGameState", gameStates[currentRoom]);
+
+      console.log("Trenutan broj igraca u sobi", currentRoom, "je", gameStates[currentRoom].numOfPlayers);
+      if (gameStates[currentRoom].numOfPlayers < 1) {
+        clearInterval(intervalVariable);
+      }
     }
   });
 });
