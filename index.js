@@ -65,11 +65,24 @@ server.on("connection", function (socket) {
       socket.emit("createLanes", gameState);
       gameStates[roomID] = gameState;
 
-      //isprobavanje timera
-      intervalVariable = setInterval(() => {
-        gameStates[roomID] = pushNewRoundGameState(gameStates[roomID], gameStates[roomID].lanes.length);
-        server.to(currentRoom).emit("refreshGameState", gameStates[currentRoom]);
-      }, 5000);
+
+      //novi timeout loop
+      function timeoutLoop() {
+        let roundTime = gameStates[roomID].roundTime;
+        intervalVariable = setTimeout(() => {
+          gameStates[roomID] = pushNewRoundGameState(gameStates[roomID], gameStates[roomID].lanes.length);
+          server.to(currentRoom).emit("refreshGameState", gameStates[currentRoom]);
+          timeoutLoop();
+        }, roundTime);
+      }
+
+      timeoutLoop();
+
+      //STARI INTERVAL (ne moze da se menja roundTime)
+      // intervalVariable = setInterval(() => {
+      //   gameStates[roomID] = pushNewRoundGameState(gameStates[roomID], gameStates[roomID].lanes.length);
+      //   server.to(currentRoom).emit("refreshGameState", gameStates[currentRoom]);
+      // }, 5000);
 
     } else {
       gameStates[roomID].numOfPlayers += 1;

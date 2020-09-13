@@ -25,7 +25,8 @@ function setGameState(numOfLanes = 5) {
 
     let gameState = {
         lanes: [],
-        numOfPlayers: {}
+        numOfPlayers: 1,
+        roundTime: 10000
     };
 
     for (let i = 0; i < numOfLanes; i++) {
@@ -35,8 +36,6 @@ function setGameState(numOfLanes = 5) {
             players: []
         })
     }
-
-    gameState.numOfPlayers = 1;
 
     console.log("pocetni game state je", gameState);
     gameState = pushWordsToGameState(gameState, gameState.lanes.length);
@@ -56,8 +55,18 @@ function pushWordsToGameState(gameState, numOfLanes = 5) {
 function pushNewRoundGameState(gameState, numOfLanes = 5) {
     gameState = pushWordsToGameState(gameState, numOfLanes);
     gameState = pushInactiveLanesToGameState(gameState, numOfLanes);
+    gameState.roundTime = pushNewRoundTime(gameState.roundTime);
 
     return gameState;
+}
+
+function pushNewRoundTime(roundTime) {
+
+    if (roundTime > 2000) {
+        roundTime -= 2000;
+    }
+
+    return roundTime;
 }
 
 function pushInactiveLanesToGameState(gameState, numOfLanes = 5) {
