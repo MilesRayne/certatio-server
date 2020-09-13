@@ -96,7 +96,6 @@ server.on("connection", function (socket) {
   //Dobijanje liste igraca u nekoj sobi
   socket.on("request:playerlist", (roomID) => {
     currentPlayers = [];
-    console.log("primio zahtev");
     let players = server.sockets.adapter.rooms[roomID].sockets;
     for (let playerID in players) {
       let clientSocket = server.sockets.connected[playerID];
@@ -109,7 +108,7 @@ server.on("connection", function (socket) {
   socket.on("code:typed", (data) => {
     console.log("primio zahtev od", socket.username, ", ukucan kod: ", data);
 
-    gameStates[currentRoom] = movePlayer(socket.username, data, gameStates[currentRoom]);
+    gameStates[currentRoom] = movePlayer(socket.username, socket.id, data, gameStates[currentRoom]);
     server.to(currentRoom).emit("refreshGameState", gameStates[currentRoom]);
   });
 
@@ -117,14 +116,14 @@ server.on("connection", function (socket) {
   socket.on("disconnect", () => {
     if (currentRoom !== null) {
       socket.to(currentRoom).emit("room:userLeft", socket.id);
-      gameStates[currentRoom] = removePlayer(socket.username, gameStates[currentRoom]);
+      gameStates[currentRoom] = removePlayer(socket.username, socket.id, gameStates[currentRoom]);
       socket.to(currentRoom).emit("refreshGameState", gameStates[currentRoom]);
 
       console.log("Trenutan broj igraca u sobi", currentRoom, "je", gameStates[currentRoom].numOfPlayers);
 
       //Remove empty rooms
       if (gameStates[currentRoom].numOfPlayers < 1) {
-        clearInterval(intervalVariable);
+        clearTimeout(intervalVariable);
 
         let roomIndex = activeRooms.indexOf(currentRoom);
         activeRooms.splice(roomIndex, 1);
