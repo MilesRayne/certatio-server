@@ -137,36 +137,75 @@ server.on("connection", function (socket) {
 
       //Remove empty rooms
       if (gameStates[currentRoom].numOfPlayers < 1) {
-        clearTimeout(intervalVariable[currentRoom]);
 
-        let roomIndex = activeRooms.indexOf(currentRoom);
-        activeRooms.splice(roomIndex, 1);
-        console.log("Active rooms are now:", activeRooms);
+        removeEmptyRoom(currentRoom);
       }
     }
   });
+
+  socket.on("leave-room", () => {
+    socket.leave(currentRoom);
+    currentRoom = null;
+  })
 
   function timeoutLoop(currentRoom) {
     console.log("Ponavljam loop za sobu", currentRoom);
     let roundTime = gameStates[currentRoom].roundTime;
     intervalVariable[currentRoom] = setTimeout(() => {
       gameStates[currentRoom] = pushNewRoundGameState(gameStates[currentRoom]);
-      sendInfoToDeadPlayers(currentRoom);
+      let alivePlayers = alivePlayerCount(currentRoom);
+      sendInfoToDeadPlayers(currentRoom, alivePlayers);
       gameStates[currentRoom] = removeDeadPlayersFromPlayerlist(gameStates[currentRoom]);
       server
         .to(currentRoom)
         .emit("refreshGameState", gameStates[currentRoom]);
-      timeoutLoop(currentRoom);
+      if (alivePlayers > 1) {
+        timeoutLoop(currentRoom);
+      } else {
+        removeEmptyRoom(currentRoom);
+      }
     }, roundTime);
   }
 
-  function sendInfoToDeadPlayers(currentRoom) {
-    for (player of gameStates[currentRoom].playerlist) {
-      if (!player.alive) {
-        server.to(player.ID).emit("enter-spectator-screen", gameStates[currentRoom].round);
+  function sendInfoToDeadPlayers(currentRoom, alivePlayers) {
+
+    if (alivePlayers == 0) {
+      for (player of gameStates[currentRoom].playerlist) {
+        server.to(player.ID).emit("enter-winner-screen", (gameStates[currentRoom].round - 1));
+        server.to(currentRoom).emit("ask-to-leave");
+      }
+    } else {
+      for (player of gameStates[currentRoom].playerlist) {
+
+        if (!player.alive) {
+          server.to(player.ID).emit("enter-spectator-screen", (gameStates[currentRoom].round - 2));
+        } else if (alivePlayers == 1) {
+          server.to(player.ID).emit("enter-winner-screen", gameStates[currentRoom].round - 1);
+          server.to(currentRoom).emit("ask-to-leave");
+        }
       }
     }
   }
 
+  function alivePlayerCount(currentRoom) {
+
+    let alivePlayerCount = 0;
+
+    for (player of gameStates[currentRoom].playerlist) {
+      if (player.alive) alivePlayerCount++;
+    }
+
+    return alivePlayerCount;
+  }
+
+
+  function removeEmptyRoom(currentRoom) {
+
+    clearTimeout(intervalVariable[currentRoom]);
+
+    let roomIndex = activeRooms.indexOf(currentRoom);
+    activeRooms.splice(roomIndex, 1);
+    console.log("Active rooms are now:", activeRooms);
+  }
 
 });

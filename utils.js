@@ -219,8 +219,6 @@ function movePlayer(username, ID, typedCode, gameState) {
 
 function removeFromLane(ID, gameState) {
 
-    console.log("HOW THE FUCK", gameState);
-
     for (let lane of gameState.lanes) {
         lane.players = lane.players.filter(player => player.ID !== ID);
     }
