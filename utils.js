@@ -39,7 +39,8 @@ function setGameState(numOfLanes = 5) {
         lanes: [],
         numOfPlayers: 0,
         playerlist: [],
-        roundTime: 10000
+        roundTime: 10000,
+        round: 1
     };
 
     for (let i = 0; i < numOfLanes; i++) {
@@ -73,6 +74,7 @@ function pushNewRoundGameState(gameState) {
     gameState = pushWordsToGameState(gameState, numOfLanes);
     gameState = pushInactiveLanesToGameState(gameState, numOfLanes);
     gameState.roundTime = pushNewRoundTime(gameState.roundTime);
+    gameState.round++;
 
 
     return gameState;

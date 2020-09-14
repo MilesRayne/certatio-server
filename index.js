@@ -13,7 +13,6 @@ const activeRooms = [];
 const gameStates = {};
 
 server.on("connection", function (socket) {
-
   let currentRoom = null;
   let intervalVariable = null;
   socket.username = null;
@@ -41,7 +40,6 @@ server.on("connection", function (socket) {
 
   //konektovanje u sobu
   socket.on("room:join", (roomID) => {
-
     //bilo bi korisno ubaciti da se korisnik diskonektuje iz svih ostalih soba pri ulasku u novu
     socket.join(roomID);
     currentRoom = roomID;
@@ -49,16 +47,13 @@ server.on("connection", function (socket) {
     //posalji nazad korisniku da se joinovao
     socket.emit("room:joined", roomID);
 
-
     console.log("Player ", socket.username, "has joined the room", roomID);
 
     //socket (korisnik koji ulazi) emituje drugima da je usao u sobu
-    socket
-      .to(roomID)
-      .emit("room:userJoined", {
-        id: socket.id,
-        username: socket.username
-      });
+    socket.to(roomID).emit("room:userJoined", {
+      id: socket.id,
+      username: socket.username,
+    });
 
     if (!activeRooms.includes(roomID)) {
       activeRooms.push(roomID);
@@ -69,20 +64,26 @@ server.on("connection", function (socket) {
         let roundTime = gameState.roundTime;
         intervalVariable = setTimeout(() => {
           gameStates[roomID] = pushNewRoundGameState(gameStates[roomID]);
-          server.to(currentRoom).emit("refreshGameState", gameStates[currentRoom]);
+          server
+            .to(currentRoom)
+            .emit("refreshGameState", gameStates[currentRoom]);
           timeoutLoop();
         }, roundTime);
       }
 
       timeoutLoop();
-
     } else {}
     gameState = addPlayerToGameState(socket.id, socket.username, gameState);
     gameStates[roomID] = gameState;
     socket.emit("createLanes", gameState);
     socket.to(currentRoom).emit("refreshGameState", gameState);
 
-    console.log("Trenutan broj igraca u sobi", roomID, "je", gameStates[roomID].numOfPlayers);
+    console.log(
+      "Trenutan broj igraca u sobi",
+      roomID,
+      "je",
+      gameStates[roomID].numOfPlayers
+    );
   });
 
   //Dobijanje liste igraca u nekoj sobi
@@ -100,7 +101,12 @@ server.on("connection", function (socket) {
   socket.on("code:typed", (data) => {
     console.log("primio zahtev od", socket.username, ", ukucan kod: ", data);
 
-    gameStates[currentRoom] = movePlayer(socket.username, socket.id, data, gameStates[currentRoom]);
+    gameStates[currentRoom] = movePlayer(
+      socket.username,
+      socket.id,
+      data,
+      gameStates[currentRoom]
+    );
     server.to(currentRoom).emit("refreshGameState", gameStates[currentRoom]);
   });
 
@@ -108,10 +114,19 @@ server.on("connection", function (socket) {
   socket.on("disconnect", () => {
     if (currentRoom !== null) {
       socket.to(currentRoom).emit("room:userLeft", socket.id);
-      gameStates[currentRoom] = removePlayer(socket.username, socket.id, gameStates[currentRoom]);
+      gameStates[currentRoom] = removePlayer(
+        socket.username,
+        socket.id,
+        gameStates[currentRoom]
+      );
       socket.to(currentRoom).emit("refreshGameState", gameStates[currentRoom]);
 
-      console.log("Trenutan broj igraca u sobi", currentRoom, "je", gameStates[currentRoom].numOfPlayers);
+      console.log(
+        "Trenutan broj igraca u sobi",
+        currentRoom,
+        "je",
+        gameStates[currentRoom].numOfPlayers
+      );
 
       //Remove empty rooms
       if (gameStates[currentRoom].numOfPlayers < 1) {
