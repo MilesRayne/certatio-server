@@ -7,7 +7,8 @@ const {
   removePlayer,
   pushNewRoundGameState,
   addPlayerToGameState,
-  setupLanes
+  setupLanes,
+  removeDeadPlayersFromPlayerlist
 } = require("./utils");
 
 const activeRooms = [];
@@ -122,7 +123,6 @@ server.on("connection", function (socket) {
     if (currentRoom !== null) {
       socket.to(currentRoom).emit("room:userLeft", socket.id);
       gameStates[currentRoom] = removePlayer(
-        socket.username,
         socket.id,
         gameStates[currentRoom]
       );
@@ -151,10 +151,22 @@ server.on("connection", function (socket) {
     let roundTime = gameStates[currentRoom].roundTime;
     intervalVariable[currentRoom] = setTimeout(() => {
       gameStates[currentRoom] = pushNewRoundGameState(gameStates[currentRoom]);
+      sendInfoToDeadPlayers(currentRoom);
+      gameStates[currentRoom] = removeDeadPlayersFromPlayerlist(gameStates[currentRoom]);
       server
         .to(currentRoom)
         .emit("refreshGameState", gameStates[currentRoom]);
       timeoutLoop(currentRoom);
     }, roundTime);
   }
+
+  function sendInfoToDeadPlayers(currentRoom) {
+    for (player of gameStates[currentRoom].playerlist) {
+      if (!player.alive) {
+        server.to(player.ID).emit("enter-spectator-screen", gameStates[currentRoom].round);
+      }
+    }
+  }
+
+
 });

@@ -25,7 +25,8 @@ function addPlayerToGameState(ID, username, gameState) {
     gameState.playerlist.push({
         username: username,
         ID: ID,
-        lives: 3
+        lives: 3,
+        alive: true
     });
 
     gameState.numOfPlayers++;
@@ -39,6 +40,7 @@ function setInitialGameState(numOfLanes = 5) {
         lanes: [],
         numOfPlayers: 0,
         playerlist: [],
+        deadPlayerlist: [],
         roundTime: 10000,
         round: 1,
         gameStarted: false
@@ -98,6 +100,7 @@ function pushNewRoundGameState(gameState) {
 function pushPlayerDataToGameState(gameState) {
 
     gameState = reducePlayerLives(gameState);
+    gameState = changePlayerAliveState(gameState);
 
     return gameState;
 }
@@ -119,6 +122,33 @@ function reducePlayerLives(gameState) {
                 }
 
             }
+        }
+    }
+
+    return gameState;
+}
+
+
+function changePlayerAliveState(gameState) {
+
+    for (let player of gameState.playerlist) {
+        if (player.lives < 1 && player.alive) {
+            player.alive = false;
+            gameState = removeFromLane(player.ID, gameState);
+            gameState.deadPlayerlist.push(player);
+        }
+    }
+
+    return gameState;
+}
+
+function removeDeadPlayersFromPlayerlist(gameState) {
+
+    for (let player of gameState.playerlist) {
+        if (!player.alive) {
+
+            let index = gameState.playerlist.indexOf(player);
+            gameState.playerlist.splice(index, 1);
         }
     }
 
@@ -187,15 +217,23 @@ function movePlayer(username, ID, typedCode, gameState) {
     return gameState;
 }
 
-function removePlayer(username, ID, gameState) {
+function removeFromLane(ID, gameState) {
+
+    console.log("HOW THE FUCK", gameState);
 
     for (let lane of gameState.lanes) {
         lane.players = lane.players.filter(player => player.ID !== ID);
     }
+
+    return gameState;
+}
+
+function removePlayer(ID, gameState) {
+
+    gameState = removeFromLane(ID, gameState);
     gameState.numOfPlayers -= 1;
 
     let player = {
-        username: username,
         ID: ID
     };
 
@@ -211,5 +249,6 @@ module.exports = {
     removePlayer,
     pushNewRoundGameState,
     addPlayerToGameState,
-    setupLanes
+    setupLanes,
+    removeDeadPlayersFromPlayerlist
 }
