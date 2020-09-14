@@ -8,7 +8,8 @@ const {
   pushNewRoundGameState,
   addPlayerToGameState,
   setupLanes,
-  removeDeadPlayersFromPlayerlist
+  removeDeadPlayersFromPlayerlist,
+  forcePlayersToLane
 } = require("./utils");
 
 const activeRooms = [];
@@ -81,8 +82,10 @@ server.on("connection", function (socket) {
     socket.on("game:start", (numOfLanes) => {
       gameStates[currentRoom].gameStarted = true;
       gameStates[currentRoom] = setupLanes(gameStates[currentRoom], numOfLanes);
+      gameStates[currentRoom] = forcePlayersToLane(gameStates[currentRoom]);
       server.to(currentRoom).emit("game:started");
       server.to(currentRoom).emit("createLanes", gameStates[currentRoom]);
+      server.to(currentRoom).emit("reset-timer", gameStates[currentRoom].roundTime);
       timeoutLoop(currentRoom);
     });
 
@@ -159,6 +162,8 @@ server.on("connection", function (socket) {
       server
         .to(currentRoom)
         .emit("refreshGameState", gameStates[currentRoom]);
+
+      server.to(currentRoom).emit("reset-timer", gameStates[currentRoom].roundTime);
       if (alivePlayers > 1) {
         timeoutLoop(currentRoom);
       } else {

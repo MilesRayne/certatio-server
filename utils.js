@@ -74,6 +74,18 @@ function setupLanes(gameState, numOfLanes = 5) {
     return gameState;
 }
 
+function forcePlayersToLane(gameState) {
+
+    console.log("broj lejnova je", gameState.lanes.length);
+    let laneIndex = Math.ceil(gameState.lanes.length / 2) - 1;
+
+    for (let player of gameState.playerlist) {
+        gameState.lanes[laneIndex].players.push(player);
+    }
+
+    return gameState;
+}
+
 function pushWordsToGameState(gameState, numOfLanes = 5) {
     let generatedWords = generateWords(numOfLanes);
     for (let i = 0; i < numOfLanes; i++) {
@@ -157,8 +169,8 @@ function removeDeadPlayersFromPlayerlist(gameState) {
 
 function pushNewRoundTime(roundTime) {
 
-    if (Math.floor(roundTime * 0.9) > 2000) {
-        roundTime = Math.floor(roundTime * 0.9);
+    if (((roundTime * 0.9) - ((roundTime * 0.9) % 1000)) > 2000) {
+        roundTime = ((roundTime * 0.9) - ((roundTime * 0.9) % 1000));
     }
 
     return roundTime;
@@ -248,5 +260,6 @@ module.exports = {
     pushNewRoundGameState,
     addPlayerToGameState,
     setupLanes,
-    removeDeadPlayersFromPlayerlist
+    removeDeadPlayersFromPlayerlist,
+    forcePlayersToLane
 }
