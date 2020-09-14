@@ -43,58 +43,55 @@ server.on("connection", function (socket) {
 
   //konektovanje u sobu
   socket.on("room:join", (roomID) => {
-    //bilo bi korisno ubaciti da se korisnik diskonektuje iz svih ostalih soba pri ulasku u novu
-    socket.join(roomID);
-    currentRoom = roomID;
 
-    //posalji nazad korisniku da se joinovao
-    socket.emit("room:joined", roomID);
-
-    console.log("Player ", socket.username, "has joined the room", roomID);
-
-    //socket (korisnik koji ulazi) emituje drugima da je usao u sobu
-    socket.to(roomID).emit("room:userJoined", {
-      id: socket.id,
-      username: socket.username,
-    });
-
-    if (!activeRooms.includes(roomID)) {
-      activeRooms.push(roomID);
-      gameStates[roomID] = setInitialGameState(5);
-
-      //TODO: display host lobby screen - host treba da posalje "game:start" kad zeli da server zapocne igru
-      socket.emit("game:signalAdmin");
-
+    if (gameStates[roomID] != null && gameStates[roomID].gameStarted == true) {
+      socket.emit("error-game-in-progress", roomID);
+      return;
     } else {
+      socket.join(roomID);
+      currentRoom = roomID;
 
-      if (gameStates[currentRoom].gameStarted == true) {
-        socket.emit("game:started");
-        socket.emit("createLanes", gameStates[currentRoom]);
-      } else {
-        //TODO: display player lobby screen
-      }
+      //posalji nazad korisniku da se joinovao
+      socket.emit("room:joined", roomID);
+
+      console.log("Player ", socket.username, "has joined the room", roomID);
+
+      //socket (korisnik koji ulazi) emituje drugima da je usao u sobu
+      socket.to(roomID).emit("room:userJoined", {
+        id: socket.id,
+        username: socket.username,
+      });
+
+      if (!activeRooms.includes(roomID)) {
+        activeRooms.push(roomID);
+        gameStates[roomID] = setInitialGameState(5);
+
+        //TODO: display host lobby screen - host treba da posalje "game:start" kad zeli da server zapocne igru
+        socket.emit("game:signalAdmin");
+
+      } else {}
+
+      gameStates[currentRoom] = addPlayerToGameState(socket.id, socket.username, gameStates[currentRoom]);
+      server.to(currentRoom).emit("refreshGameState", gameStates[currentRoom]);
+
+
+      socket.on("game:start", (numOfLanes) => {
+        gameStates[currentRoom].gameStarted = true;
+        gameStates[currentRoom] = setupLanes(gameStates[currentRoom], numOfLanes);
+        gameStates[currentRoom] = forcePlayersToLane(gameStates[currentRoom]);
+        server.to(currentRoom).emit("game:started");
+        server.to(currentRoom).emit("createLanes", gameStates[currentRoom]);
+        server.to(currentRoom).emit("reset-timer", gameStates[currentRoom].roundTime);
+        timeoutLoop(currentRoom);
+      });
+
+      console.log(
+        "Trenutan broj igraca u sobi",
+        roomID,
+        "je",
+        gameStates[roomID].numOfPlayers
+      );
     }
-
-    gameStates[currentRoom] = addPlayerToGameState(socket.id, socket.username, gameStates[currentRoom]);
-    server.to(currentRoom).emit("refreshGameState", gameStates[currentRoom]);
-
-
-    socket.on("game:start", (numOfLanes) => {
-      gameStates[currentRoom].gameStarted = true;
-      gameStates[currentRoom] = setupLanes(gameStates[currentRoom], numOfLanes);
-      gameStates[currentRoom] = forcePlayersToLane(gameStates[currentRoom]);
-      server.to(currentRoom).emit("game:started");
-      server.to(currentRoom).emit("createLanes", gameStates[currentRoom]);
-      server.to(currentRoom).emit("reset-timer", gameStates[currentRoom].roundTime);
-      timeoutLoop(currentRoom);
-    });
-
-    console.log(
-      "Trenutan broj igraca u sobi",
-      roomID,
-      "je",
-      gameStates[roomID].numOfPlayers
-    );
   });
 
   //Dobijanje liste igraca u nekoj sobi
@@ -211,6 +208,7 @@ server.on("connection", function (socket) {
     let roomIndex = activeRooms.indexOf(currentRoom);
     activeRooms.splice(roomIndex, 1);
     console.log("Active rooms are now:", activeRooms);
+    gameStates[currentRoom] = null;
   }
 
 });
