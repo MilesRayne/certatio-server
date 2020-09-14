@@ -12,10 +12,10 @@ const {
 
 const activeRooms = [];
 const gameStates = {};
+const intervalVariable = {};
 
 server.on("connection", function (socket) {
   let currentRoom = null;
-  let intervalVariable = null;
   socket.username = null;
 
   //logovanje konektovanja novog korisnika na server igre
@@ -137,7 +137,7 @@ server.on("connection", function (socket) {
 
       //Remove empty rooms
       if (gameStates[currentRoom].numOfPlayers < 1) {
-        clearTimeout(intervalVariable);
+        clearTimeout(intervalVariable[currentRoom]);
 
         let roomIndex = activeRooms.indexOf(currentRoom);
         activeRooms.splice(roomIndex, 1);
@@ -149,7 +149,7 @@ server.on("connection", function (socket) {
   function timeoutLoop(currentRoom) {
     console.log("Ponavljam loop za sobu", currentRoom);
     let roundTime = gameStates[currentRoom].roundTime;
-    intervalVariable = setTimeout(() => {
+    intervalVariable[currentRoom] = setTimeout(() => {
       gameStates[currentRoom] = pushNewRoundGameState(gameStates[currentRoom]);
       server
         .to(currentRoom)
