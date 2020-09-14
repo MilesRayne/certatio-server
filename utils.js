@@ -33,23 +33,38 @@ function addPlayerToGameState(ID, username, gameState) {
     return gameState;
 }
 
-function setGameState(numOfLanes = 5) {
+function setInitialGameState(numOfLanes = 5) {
 
     let gameState = {
         lanes: [],
         numOfPlayers: 0,
         playerlist: [],
         roundTime: 10000,
-        round: 1
+        round: 1,
+        gameStarted: false
     };
 
-    for (let i = 0; i < numOfLanes; i++) {
+    return gameState;
+}
+
+function setupLanes(gameState, numOfLanes = 5) {
+
+    let limit = 5;
+
+    numOfLanes = parseInt(numOfLanes);
+
+    if (Number.isInteger(numOfLanes) && numOfLanes > 1 && numOfLanes < 7) {
+        limit = numOfLanes;
+    }
+
+    for (let i = 0; i < limit; i++) {
         gameState.lanes.push({
             code: '',
             active: true,
             players: []
         })
     }
+
 
     console.log("pocetni game state je", gameState);
     gameState = pushWordsToGameState(gameState, gameState.lanes.length);
@@ -191,9 +206,10 @@ function removePlayer(username, ID, gameState) {
 
 module.exports = {
     generateWords,
-    setGameState,
+    setInitialGameState,
     movePlayer,
     removePlayer,
     pushNewRoundGameState,
-    addPlayerToGameState
+    addPlayerToGameState,
+    setupLanes
 }

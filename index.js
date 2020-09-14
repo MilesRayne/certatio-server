@@ -2,11 +2,12 @@ const io = require("socket.io");
 const server = io.listen(3000);
 const {
   generateWords,
-  setGameState,
+  setInitialGameState,
   movePlayer,
   removePlayer,
   pushNewRoundGameState,
-  addPlayerToGameState
+  addPlayerToGameState,
+  setupLanes
 } = require("./utils");
 
 const activeRooms = [];
@@ -57,26 +58,33 @@ server.on("connection", function (socket) {
 
     if (!activeRooms.includes(roomID)) {
       activeRooms.push(roomID);
-      gameState = setGameState(5);
+      gameState = setInitialGameState(5);
 
-      //novi timeout loop
-      function timeoutLoop() {
-        let roundTime = gameState.roundTime;
-        intervalVariable = setTimeout(() => {
-          gameStates[roomID] = pushNewRoundGameState(gameStates[roomID]);
-          server
-            .to(currentRoom)
-            .emit("refreshGameState", gameStates[currentRoom]);
-          timeoutLoop();
-        }, roundTime);
+      //TODO: display host lobby screen - host treba da posalje "game:start" kad zeli da server zapocne igru
+      socket.emit("game:signalAdmin");
+
+    } else {
+
+      if (gameStates[currentRoom].gameStarted == true) {
+        socket.emit("game:started");
+        socket.emit("createLanes", gameStates[currentRoom]);
+      } else {
+        //TODO: display player lobby screen
       }
+    }
 
-      timeoutLoop();
-    } else {}
-    gameState = addPlayerToGameState(socket.id, socket.username, gameState);
-    gameStates[roomID] = gameState;
-    socket.emit("createLanes", gameState);
-    socket.to(currentRoom).emit("refreshGameState", gameState);
+    gameStates[currentRoom] = gameState;
+    gameStates[currentRoom] = addPlayerToGameState(socket.id, socket.username, gameStates[currentRoom]);
+    server.to(currentRoom).emit("refreshGameState", gameStates[currentRoom]);
+
+
+    socket.on("game:start", (numOfLanes) => {
+      gameStates[currentRoom].gameStarted = true;
+      gameStates[currentRoom] = setupLanes(gameStates[currentRoom], numOfLanes);
+      server.to(currentRoom).emit("game:started");
+      server.to(currentRoom).emit("createLanes", gameStates[currentRoom]);
+      timeoutLoop(currentRoom);
+    });
 
     console.log(
       "Trenutan broj igraca u sobi",
@@ -138,4 +146,16 @@ server.on("connection", function (socket) {
       }
     }
   });
+
+  function timeoutLoop(currentRoom) {
+    console.log("Ponavljam loop za sobu", currentRoom);
+    let roundTime = gameStates[currentRoom].roundTime;
+    intervalVariable = setTimeout(() => {
+      gameStates[currentRoom] = pushNewRoundGameState(gameStates[currentRoom]);
+      server
+        .to(currentRoom)
+        .emit("refreshGameState", gameStates[currentRoom]);
+      timeoutLoop(currentRoom);
+    }, roundTime);
+  }
 });
