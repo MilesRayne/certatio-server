@@ -58,7 +58,7 @@ server.on("connection", function (socket) {
 
     if (!activeRooms.includes(roomID)) {
       activeRooms.push(roomID);
-      gameState = setInitialGameState(5);
+      gameStates[roomID] = setInitialGameState(5);
 
       //TODO: display host lobby screen - host treba da posalje "game:start" kad zeli da server zapocne igru
       socket.emit("game:signalAdmin");
@@ -73,7 +73,6 @@ server.on("connection", function (socket) {
       }
     }
 
-    gameStates[currentRoom] = gameState;
     gameStates[currentRoom] = addPlayerToGameState(socket.id, socket.username, gameStates[currentRoom]);
     server.to(currentRoom).emit("refreshGameState", gameStates[currentRoom]);
 
