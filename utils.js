@@ -169,8 +169,14 @@ function removeDeadPlayersFromPlayerlist(gameState) {
 
 function pushNewRoundTime(roundTime) {
 
-    if (((roundTime * 0.9) - ((roundTime * 0.9) % 1000)) > 2000) {
-        roundTime = ((roundTime * 0.9) - ((roundTime * 0.9) % 1000));
+    if (roundTime - 2000 >= 6000) {
+        roundTime -= 2000;
+    } else if (roundTime - 1000 >= 2000) {
+        roundTime -= 1000;
+    } else if (roundTime - 100 >= 1000) {
+        roundTime -= 100;
+    } else if (roundTime - 50 >= 500) {
+        roundTime -= 50;
     }
 
     return roundTime;
