@@ -173,10 +173,10 @@ function pushNewRoundTime(roundTime) {
         roundTime -= 2000;
     } else if (roundTime - 1000 >= 2000) {
         roundTime -= 1000;
-    } else if (roundTime - 100 >= 1000) {
-        roundTime -= 100;
-    } else if (roundTime - 50 >= 500) {
+    } else if (roundTime - 50 >= 1000) {
         roundTime -= 50;
+    } else if (roundTime - 20 >= 500) {
+        roundTime -= 20;
     }
 
     return roundTime;
