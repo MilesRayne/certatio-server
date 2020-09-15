@@ -209,6 +209,7 @@ server.on("connection", function (socket) {
     activeRooms.splice(roomIndex, 1);
     console.log("Active rooms are now:", activeRooms);
     gameStates[currentRoom] = null;
+    delete gameStates[currentRoom];
   }
 
 });
